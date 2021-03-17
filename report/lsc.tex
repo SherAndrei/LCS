@@ -1,0 +1,467 @@
+\documentclass[12pt]{article}
+ 
+%Russian-specific packages
+%--------------------------------------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english, russian]{babel}
+%for search in russian
+\usepackage{cmap}
+%--------------------------------------
+
+%Math-specific packages
+%--------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%Format-specific packages
+%--------------------------------------
+\usepackage[left=2cm,
+            right=2cm,
+            top=1cm,
+            bottom=2cm,
+            bindingoffset=0cm]{geometry}
+
+\usepackage{amsthm}
+\newtheorem{lemma}{Лемма}
+\newtheorem{definition}{Определение}
+\newtheorem*{remark}{Замечание}
+
+\def\LCS{
+    \mathrm{LCS}
+}
+
+\usepackage{tikz}
+\usetikzlibrary{tikzmark}
+\usetikzlibrary{matrix}
+\tikzset{ 
+table/.style={
+  matrix of nodes,
+  row sep=-\pgflinewidth,
+  column sep=-\pgflinewidth,
+  nodes={draw, rectangle,text width=3em,align=center},
+  text depth=1.25ex,
+  text height=2.5ex,
+  nodes in empty cells
+},
+row 1/.style={nodes={fill=green!10,text depth=0.4ex,text height=2ex}},
+column 1/.style={nodes={fill=green!10}},
+}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset {
+    language=c++,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    tabsize=2
+}
+
+%--------------------------------------
+
+\title{Longest Common Subsequence}
+\author{Шерстобитов Андрей \\
+         332 группа}
+
+\begin{document}
+\maketitle
+    \newpage
+\tableofcontents
+    \newpage
+\section{Aлгоритм в "дискретном"\ случае}
+
+\subsection{Постановка задачи}
+ Для данных последовательностей найти самую длинную общую подпоследовательность, при этом
+подпоследовательность может быть разрывна в данной последовательности.
+
+Приведу пример:
+
+Пусть даны две последовательности:
+\begin{align*}
+    S1 &= \{B, C, D, A, A, C, D\} \\
+    S2 &= \{A, C, D, B, A, C\}
+\end{align*}
+
+Тогда их общие подпоследовательности это
+$$\{B, C\},\ \{C, D, A, C\},\ \{D, A, C\},\ \{A, A, C\},\ \{A, C\},\ \{C, D\},\ ...$$
+Среди этих подпоследовательностей мы найдем
+самую длинную, а именно $\{C, D, A, C\}$
+\subsection{Общие понятия}
+Прежде чем переходить непосредственно к алгоритму,
+    рассмотрим несколько понятий:
+
+\begin{definition}
+    Назовем $\Omega$ множество элементов,
+    из которых мы будем составлять наши последовательности.
+    В данном разделе легче представлять это множество, как множество
+    букв английского алфавита, а последовательности - соответственно - строки.
+\end{definition}
+\begin{definition}
+    Знаком $\&$ будем обозначать стандартную конкатенацию последовательностей.
+    Например: $\{a,b,c\}\ \&\ \{c,b,a\}\ =\ \{a,b,c,c,b,a\}$.
+\end{definition}
+\begin{definition}
+    Префиксом последовательности $S=\{x_1,\ldots,x_n\}$ длины $0 < k\leq n$
+    обозначим $S_k=\{x_1,\ldots, x_k\}$
+\end{definition}
+\begin{definition}
+    Назовем $\LCS(S1, S2)$ функцию, которая принимает на вход
+    две последовательности $S1 = \{x_1, \ldots, x_n\}$ и $S2 = \{y_1, \ldots, y_n\}$ и возвращает
+    наибольшую общую подпоследовательность $C$.
+\end{definition}
+    Докажем вспомогательную лемму:
+\begin{lemma} \label{lm::props}
+    Функция $\LCS(S1, S2)$ обладает следующими свойствами:
+    \begin{enumerate}
+        \item $\forall\ A\in\Omega$
+            $$\LCS(S1\ \&\ A,\ S2\ \&\ A) = \LCS(S1,\ S2)\ \&\ A$$
+        \item $\forall A\neq B\in\Omega$
+            $$\LCS(S1\ \&\ A, S2\ \&\ B) = \max \{\LCS(S1\ \&\ A, S2), \LCS(S1, S2\ \&\ B)\}$$
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    \begin{enumerate}
+        \item Представим нахождение общей последовательности как
+        последовательное сопоставление элементов последовательностей друг за
+        другом без пересечений.
+
+        Рассмотрим $S1 = \{a, b, c, d, e, f\},\ S2 = \{d, a, c, e, q\}$ и уже
+        найденную для них общую подпоследовательность $C = \{a, c, e\}$, тогда \par
+        $$\begin{tabular}{cccccc}
+            a\tikzmark{fa1} & b & c\tikzmark{fc1} & d & e \tikzmark{fe1} & f  \\
+            d & a\tikzmark{sa1} & c\tikzmark{sc1} & e \tikzmark{se1} & q  \\
+          \end{tabular}
+          \begin{tikzpicture}[overlay, remember picture, shorten >=7pt, shorten <=4pt, transform canvas={yshift=0.1\baselineskip}]
+            \draw [->] ({pic cs:fa1}) -- ({pic cs:sa1});
+            \draw [->] ([xshift=-2.5pt]{pic cs:fc1}) -- ([xshift=-2.5pt]{pic cs:sc1});
+            \draw [->] ([xshift=-4pt]{pic cs:fe1}) -- ([xshift=-7pt]{pic cs:se1});
+          \end{tikzpicture}
+        $$
+        Добавив в конец каждой последовательности по одному элементу (пусть $p$), мы не нарушим
+        наш алгоритм, так как новых пересечений быть не может.
+        $$\begin{tabular}{ccccccc}
+            a\tikzmark{fa} & b & c\tikzmark{fc} & d & e \tikzmark{fe} & f &p \tikzmark{fp}\\
+            d & a\tikzmark{sa} & c\tikzmark{sc} & e \tikzmark{se} & q &p \tikzmark{sp}\\
+          \end{tabular}
+          \begin{tikzpicture}[overlay, remember picture, shorten >=7pt, shorten <=4pt, transform canvas={yshift=0.1\baselineskip}]
+            \draw [->] ({pic cs:fa}) -- ({pic cs:sa});
+            \draw [->] ([xshift=-2.5pt]{pic cs:fc}) -- ([xshift=-2.5pt]{pic cs:sc});
+            \draw [->] ([xshift=-4pt]{pic cs:fe}) -- ([xshift=-7pt]{pic cs:se});
+            \draw [->] ([xshift=-4pt]{pic cs:fp}) -- ([xshift=-7pt]{pic cs:sp});
+          \end{tikzpicture}
+        $$
+        \item В противном случае, если последние элементы последовательностей
+        $S1 =\{x_1, \ldots,x_n\}$, $S2=\{y_1,\ldots,y_m\}$ различны $(x_n\neq y_m)$,
+        то какой-либо из них не входит в наибольшую \underline{общую}
+        подпоследовательность, иначе могут появиться самопересечения. Значит
+        нужно рассмотреть последовательности $S1 =\{x_1, \ldots,x_n\}$, $S2'=\{y_1,\ldots,y_{m-1}\}$
+        и $S1' =\{x_1, \ldots,x_{n-1}\}$, $S2=\{y_1,\ldots,y_{m}\}$ и среди них
+        выбрать максимальную общую подпоследовательность.
+    \end{enumerate}
+\end{proof}
+    Таким образом для последователностей $X = (x_1,\ldots,x_n), Y=(y_1,\ldots,y_m)$,
+    их префиксов $X_{1,2,\ldots,n}, Y_{1,2,\ldots,m}$ наша функция $\LCS(X_i,Y_j)$ принимает вид:
+    \begin{equation*}
+        \LCS(X_i,Y_j) = \begin{cases}
+                \emptyset & \text{если } i = 0 \text{ или } j = 0 \\
+                \LCS(X_{i-1}, Y_{j-1})\&x_i & \text{если } i,j>0 \text{ и } x_i=y_j \\
+                \max\{\LCS(X_{i}, Y_{j-1}), \LCS(X_{i-1}, Y_{j})\} & \text{если } i,j>0 \text{ и } x_i\neq y_j
+            \end{cases}
+    \end{equation*}
+
+\subsection{Алгоритм}
+Рассмотрим алгоритм для последовательностей $X = (x_1,\ldots,x_n)$,
+$Y=(y_1,\ldots,y_m)$:
+\begin{enumerate}
+    \item Создаем таблицу размера $(n+1)\times (m+1)$, где
+        первая строка и первый столбец заполнены нулями.
+        Это нужно для случая, когда одна из последовательностей пустая.
+    \item Заполняем эту таблицу следующим образом:
+        \begin{enumerate}
+            \item Если элемент на текущей строке и текущей колонке
+                совпадают, то по свойству 1 заполняем ячейку числом на 1 больше,
+                чем в левой верхней диагональной ячейке. Проводим
+                стрелку к этой же ячейке от текущей.
+            \item Иначе по свойству 2 берем максимальное значние с предыдущей колонки
+                и предыдущей строки и заполняем текущую ячейку. Проводим стрелку
+                к максимальному элементу. Если они равны, то к любому из них.
+        \end{enumerate}
+    \item Повторяем предыдущий шаг до заполнения таблицы.
+    \item Получаем в правой нижней ячейке таблицы длину максимальной общей подпоследовательности.
+    \item Чтобы распечатать искомую подпоследовательность, начиинаем
+        с правого нижнего элемента и двигаемся по стрелкам. Добравшись
+        до первой строки или столбца получим нашу последовательность.
+\end{enumerate}
+\subsection{Примеры}
+    Рассмотирм две последовательности $X = \{C, B, D, A\}, Y = \{A,C,A,D,B\}$ и выполним
+    для них алгоритм.
+    \begin{enumerate}
+        \item Составляем требуемую таблицу.
+    $$
+    \begin{tikzpicture}
+        \matrix(m)[table] {
+                    & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
+        $\emptyset$ &       0     &  0  &  0  &  0  & 0 \\
+          $A$       &       0     &     &     &     & \\
+          $C$       &       0     &     &     &     & \\
+          $A$       &       0     &     &     &     & \\
+          $D$       &       0     &     &     &     & \\
+          $B$       &       0     &     &     &     & \\
+        };
+    \end{tikzpicture}
+    $$
+    \item Заполним первую строку соответственно нашему алгоритму и
+    свойствам нашей функции LCS(S1, S2).
+    $$
+    \begin{tikzpicture}
+        \matrix(m)[table] {
+                    & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
+        $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
+          $A$       &       0     &  0  &  0  &  0  & 1  \\
+          $C$       &       0     &     &     &     & \\
+          $A$       &       0     &     &     &     & \\
+          $D$       &       0     &     &     &     & \\
+          $B$       &       0     &     &     &     & \\
+        };
+        % the arrows
+        \begin{scope}[shorten >=7pt,shorten <= 7pt]
+        \draw[->]  (m-3-3.center) -- (m-2-3.center);
+        \draw[->]  (m-3-3.center) -- (m-3-2.center);
+
+        \draw[->]  (m-3-4.center) -- (m-3-3.center);
+        \draw[->]  (m-3-4.center) -- (m-2-4.center);
+
+        \draw[->]  (m-3-5.center) -- (m-3-4.center);
+        \draw[->]  (m-3-5.center) -- (m-2-5.center);
+
+        \draw[->]  (m-3-6.center) -- (m-2-5.center);
+        \end{scope}
+        \end{tikzpicture}
+    $$
+        \item Повторим для последующих строк.
+    $$
+        \begin{tikzpicture}
+            % the matrix entries
+            \matrix (m) [table] {
+                        & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
+            $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
+              $A$       &       0     &  0  &  0  &  0  & 1  \\
+              $C$       &       0     &  1  &  1  &  1  & 1  \\
+              $A$       &       0     &  1  &  1  &  1  & 2  \\
+              $D$       &       0     &  1  &  1  &  2  & 2  \\
+              $B$       &       0     &  1  &  2  &  2  & 2  \\
+            };
+            % the arrows
+            \begin{scope}[shorten >=7pt,shorten <= 7pt]
+            \draw[->]  (m-3-3.center) -- (m-2-3.center);
+            \draw[->]  (m-3-3.center) -- (m-3-2.center);
+            \draw[->]  (m-3-4.center) -- (m-3-3.center);
+            \draw[->]  (m-3-4.center) -- (m-2-4.center);
+            \draw[->]  (m-3-5.center) -- (m-3-4.center);
+            \draw[->]  (m-3-5.center) -- (m-2-5.center);
+            \draw[->]  (m-3-6.center) -- (m-2-5.center);
+
+            \draw[->]  (m-4-3.center) -- (m-3-2.center);
+            \draw[->]  (m-4-4.center) -- (m-4-3.center);
+            \draw[->]  (m-4-5.center) -- (m-4-4.center);
+            \draw[->]  (m-4-6.center) -- (m-4-5.center);
+            \draw[->]  (m-4-6.center) -- (m-3-6.center);
+    
+            \draw[->]  (m-5-3.center) -- (m-4-3.center);
+            \draw[->]  (m-5-4.center) -- (m-4-4.center);
+            \draw[->]  (m-5-4.center) -- (m-5-3.center);
+            \draw[->]  (m-5-5.center) -- (m-4-5.center);
+            \draw[->]  (m-5-5.center) -- (m-5-4.center);
+            \draw[->]  (m-5-6.center) -- (m-4-5.center);
+
+            \draw[->]  (m-6-3.center) -- (m-5-3.center);
+            \draw[->]  (m-6-4.center) -- (m-5-4.center);
+            \draw[->]  (m-6-4.center) -- (m-6-3.center);
+            \draw[->]  (m-6-5.center) -- (m-5-4.center);
+            \draw[->]  (m-6-6.center) -- (m-5-6.center);
+            \draw[->]  (m-6-6.center) -- (m-6-5.center);
+
+            \draw[->]  (m-7-3.center) -- (m-6-3.center);
+            \draw[->]  (m-7-4.center) -- (m-6-3.center);
+            \draw[->]  (m-7-5.center) -- (m-6-5.center);
+            \draw[->]  (m-7-5.center) -- (m-7-4.center);
+            \draw[->]  (m-7-6.center) -- (m-6-6.center);
+            \draw[->]  (m-7-6.center) -- (m-7-5.center);
+            \end{scope}
+        \end{tikzpicture}
+    $$
+        \item Значение в последней ячейке - длина наибольшей общей последовательности.
+    $$
+        \begin{tikzpicture}
+            % the matrix entries
+            \matrix (m) [table] {
+                        & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
+            $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
+              $A$       &       0     &  0  &  0  &  0  & 1  \\
+              $C$       &       0     &  1  &  1  &  1  & 1  \\
+              $A$       &       0     &  1  &  1  &  1  & 2  \\
+              $D$       &       0     &  1  &  1  &  2  & 2  \\
+              $B$       &       0     &  1  &  2  &  2  & |[fill=gray!20]|2  \\
+            };
+            % the arrows
+            \begin{scope}[shorten >=7pt,shorten <= 7pt]
+            \draw[->]  (m-3-3.center) -- (m-2-3.center);
+            \draw[->]  (m-3-3.center) -- (m-3-2.center);
+            \draw[->]  (m-3-4.center) -- (m-3-3.center);
+            \draw[->]  (m-3-4.center) -- (m-2-4.center);
+            \draw[->]  (m-3-5.center) -- (m-3-4.center);
+            \draw[->]  (m-3-5.center) -- (m-2-5.center);
+            \draw[->]  (m-3-6.center) -- (m-2-5.center);
+
+            \draw[->]  (m-4-3.center) -- (m-3-2.center);
+            \draw[->]  (m-4-4.center) -- (m-4-3.center);
+            \draw[->]  (m-4-5.center) -- (m-4-4.center);
+            \draw[->]  (m-4-6.center) -- (m-4-5.center);
+            \draw[->]  (m-4-6.center) -- (m-3-6.center);
+    
+            \draw[->]  (m-5-3.center) -- (m-4-3.center);
+            \draw[->]  (m-5-4.center) -- (m-4-4.center);
+            \draw[->]  (m-5-4.center) -- (m-5-3.center);
+            \draw[->]  (m-5-5.center) -- (m-4-5.center);
+            \draw[->]  (m-5-5.center) -- (m-5-4.center);
+            \draw[->]  (m-5-6.center) -- (m-4-5.center);
+
+            \draw[->]  (m-6-3.center) -- (m-5-3.center);
+            \draw[->]  (m-6-4.center) -- (m-5-4.center);
+            \draw[->]  (m-6-4.center) -- (m-6-3.center);
+            \draw[->]  (m-6-5.center) -- (m-5-4.center);
+            \draw[->]  (m-6-6.center) -- (m-5-6.center);
+            \draw[->]  (m-6-6.center) -- (m-6-5.center);
+
+            \draw[->]  (m-7-3.center) -- (m-6-3.center);
+            \draw[->]  (m-7-4.center) -- (m-6-3.center);
+            \draw[->]  (m-7-5.center) -- (m-6-5.center);
+            \draw[->]  (m-7-5.center) -- (m-7-4.center);
+            \draw[->]  (m-7-6.center) -- (m-6-6.center);
+            \draw[->]  (m-7-6.center) -- (m-7-5.center);
+            \end{scope}
+        \end{tikzpicture}
+    $$
+        \item Находим общие подпоследовательности, двигаясь по стрелочкам.
+    $$
+        \begin{tikzpicture}
+            % the matrix entries
+            \matrix (m) [table] {
+                        & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
+            $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
+              $A$       & |[fill=red!20!yellow!20!blue!20!]|0     &  0  &  0  &  0  & 1  \\
+              $C$       &       0     &  |[fill=red!20!yellow!20!blue!20!]|1  &  |[fill=yellow!20!blue!20!]|1  &  |[fill=yellow!20]|1  & 1  \\
+              $A$       &       0     &  |[fill=red!20!blue!20!]|1  &  |[fill=blue!20!]|1  &  1  & |[fill=yellow!20]|2  \\
+              $D$       &       0     &  |[fill=red!20]|1  &  1  &  |[fill=blue!20!]|2  & |[fill=yellow!20!blue!20!]|2  \\
+              $B$       &       0     &  1  &  |[fill=red!20]|2  &  |[fill=red!20!blue!20!]|2  & |[fill=red!20!yellow!20!blue!20!]|2  \\
+            };
+            % the arrows
+            \begin{scope}[shorten >=7pt,shorten <= 7pt]
+            \draw[->]  (m-3-3.center) -- (m-2-3.center);
+            \draw[->]  (m-3-3.center) -- (m-3-2.center);
+            \draw[->]  (m-3-4.center) -- (m-3-3.center);
+            \draw[->]  (m-3-4.center) -- (m-2-4.center);
+            \draw[->]  (m-3-5.center) -- (m-3-4.center);
+            \draw[->]  (m-3-5.center) -- (m-2-5.center);
+            \draw[->]  (m-3-6.center) -- (m-2-5.center);
+
+            \draw[->]  (m-4-3.center) -- (m-3-2.center);
+            \draw[->]  (m-4-4.center) -- (m-4-3.center);
+            \draw[->]  (m-4-5.center) -- (m-4-4.center);
+            \draw[->]  (m-4-6.center) -- (m-4-5.center);
+            \draw[->]  (m-4-6.center) -- (m-3-6.center);
+    
+            \draw[->]  (m-5-3.center) -- (m-4-3.center);
+            \draw[->]  (m-5-4.center) -- (m-4-4.center);
+            \draw[->]  (m-5-4.center) -- (m-5-3.center);
+            \draw[->]  (m-5-5.center) -- (m-4-5.center);
+            \draw[->]  (m-5-5.center) -- (m-5-4.center);
+            \draw[->]  (m-5-6.center) -- (m-4-5.center);
+
+            \draw[->]  (m-6-3.center) -- (m-5-3.center);
+            \draw[->]  (m-6-4.center) -- (m-5-4.center);
+            \draw[->]  (m-6-4.center) -- (m-6-3.center);
+            \draw[->]  (m-6-5.center) -- (m-5-4.center);
+            \draw[->]  (m-6-6.center) -- (m-5-6.center);
+            \draw[->]  (m-6-6.center) -- (m-6-5.center);
+
+            \draw[->]  (m-7-3.center) -- (m-6-3.center);
+            \draw[->]  (m-7-4.center) -- (m-6-3.center);
+            \draw[->]  (m-7-5.center) -- (m-6-5.center);
+            \draw[->]  (m-7-5.center) -- (m-7-4.center);
+            \draw[->]  (m-7-6.center) -- (m-6-6.center);
+            \draw[->]  (m-7-6.center) -- (m-7-5.center);
+            \end{scope}
+        \end{tikzpicture}
+        $$
+    \end{enumerate}
+    Таким образом, получившиеся наибольшие общие подпоследовательности:
+    $$\{C, B\}, \{C, A\}, \{C, D\}$$
+    \begin{remark}
+        Данный пример показал, что наибольшая общая подпоследовательность
+        не единственна.
+    \end{remark}
+
+\newpage
+\subsection{Реализация алгоритма на C++}
+\begin{lstlisting}
+#include <vector>
+
+template<typename T>
+using Sequence<T> = std::vector<T>;
+
+template<typename T>
+std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
+    std::vector<std::vector<int>> table(S1.size() + 1,
+                                    std::vector<int>(S2.size() + 1));
+    int i, j;
+
+    for (i = 0; i <= a.size(); ++i) {
+        for (j = 0; j <= b.size(); ++j) {
+            if (i == 0 || j == 0)
+                table[i][j] = 0;
+            else if (S1[i - 1] == S2[j - 1])
+                table[i][j] = table[i - 1][j - 1] + 1;
+            else
+                table[i][j] = std::max(table[i - 1][j], table[i][j - 1]);
+        }
+    }
+
+    int index = table[S1.size()][S2.size()]
+    std::vector<T> LCS(index);
+
+    while (i > 0 && j > 0) {
+        if (S1[i - 1] == S2[j - 1]) {
+          LCS[index - 1] = S1[i - 1];
+          i--, j--, index--;
+        } else if (LCS_table[i - 1][j] > LCS_table[i][j - 1]) {
+            i--;
+        } else {
+            j--;
+        }
+    }
+
+    return LCS;
+}
+\end{lstlisting}
+
+\textbf{Сложность работы:} $\mathcal{O}(mn)$, где $m$ и $n$ - длины последовательностей.
+
+\textbf{Сложнсоть по памяти:} $\mathcal{O}(mn)$, где $m$ и $n$ - длины последовательностей.
+
+\end{document}
