@@ -5,13 +5,15 @@
 
 namespace lcs {
 
-class Table {
-using node_t = uint16_t;
+template<typename T,
+         std::enable_if_t<std::is_integral_v<T>, bool> = true>
+class IntegralTable {
+ public:
+    using node_t = uint16_t;
 
  public:
-    template<typename T>
-    Table(const std::vector<T>& S1,
-          const std::vector<T>& S2)
+    IntegralTable(const std::vector<T>& S1,
+                  const std::vector<T>& S2)
         : _rows(S1.size() + 1)
         , _columns(S2.size() + 1)
         , _table(std::make_unique<node_t[]>(_rows * _columns)) {
