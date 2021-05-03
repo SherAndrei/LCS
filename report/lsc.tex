@@ -32,8 +32,9 @@
 }
 
 \usepackage{tikz}
-\usetikzlibrary{tikzmark}
-\usetikzlibrary{matrix}
+\usepackage{pgfplots}
+
+\usetikzlibrary{matrix, tikzmark, calc,trees,positioning,arrows,fit,shapes}
 \tikzset{ 
 table/.style={
   matrix of nodes,
@@ -47,6 +48,7 @@ table/.style={
 row 1/.style={nodes={fill=green!10,text depth=0.4ex,text height=2ex}},
 column 1/.style={nodes={fill=green!10}},
 }
+
 
 \usepackage{listings}
 \usepackage{xcolor}
@@ -83,15 +85,14 @@ column 1/.style={nodes={fill=green!10}},
     \newpage
 \tableofcontents
     \newpage
-\section{Aлгоритм в "дискретном"\ случае}
+
+\section{Задача с целыми числами}
 
 \subsection{Постановка задачи}
  Для данных последовательностей найти самую длинную общую подпоследовательность, при этом
 подпоследовательность может быть разрывна в данной последовательности.
 
-Приведу пример:
-
-Пусть даны две последовательности:
+Пример: Пусть даны две последовательности:
 \begin{align*}
     S1 &= \{B, C, D, A, A, C, D\} \\
     S2 &= \{A, C, D, B, A, C\}
@@ -101,7 +102,7 @@ column 1/.style={nodes={fill=green!10}},
 $$\{B, C\},\ \{C, D, A, C\},\ \{D, A, C\},\ \{A, A, C\},\ \{A, C\},\ \{C, D\},\ ...$$
 Среди этих подпоследовательностей мы найдем
 самую длинную, а именно $\{C, D, A, C\}$
-\subsection{Общие понятия}
+\subsection{Введение в алгоритм}
 Прежде чем переходить непосредственно к алгоритму,
     рассмотрим несколько понятий:
 
@@ -197,7 +198,7 @@ $Y=(y_1,\ldots,y_m)$:
                 совпадают, то по свойству 1 заполняем ячейку числом на 1 больше,
                 чем в левой верхней диагональной ячейке. Проводим
                 стрелку к этой же ячейке от текущей.
-            \item Иначе по свойству 2 берем максимальное значние с предыдущей колонки
+            \item Иначе по свойству 2 берем максимальное значение с предыдущей колонки
                 и предыдущей строки и заполняем текущую ячейку. Проводим стрелку
                 к максимальному элементу. Если они равны, то к любому из них.
         \end{enumerate}
@@ -360,7 +361,6 @@ $Y=(y_1,\ldots,y_m)$:
         \item Находим общие подпоследовательности, двигаясь по стрелочкам.
     $$
         \begin{tikzpicture}
-            % the matrix entries
             \matrix (m) [table] {
                         & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
             $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
@@ -370,7 +370,6 @@ $Y=(y_1,\ldots,y_m)$:
               $D$       &       0     &  |[fill=red!20]|1  &  1  &  |[fill=blue!20!]|2  & |[fill=yellow!20!blue!20!]|2  \\
               $B$       &       0     &  1  &  |[fill=red!20]|2  &  |[fill=red!20!blue!20!]|2  & |[fill=red!20!yellow!20!blue!20!]|2  \\
             };
-            % the arrows
             \begin{scope}[shorten >=7pt,shorten <= 7pt]
             \draw[->]  (m-3-3.center) -- (m-2-3.center);
             \draw[->]  (m-3-3.center) -- (m-3-2.center);
@@ -460,5 +459,226 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
 \textbf{Сложность работы:} $\mathcal{O}(mn)$, где $m$ и $n$ - длины последовательностей.
 
 \textbf{Сложнсоть по памяти:} $\mathcal{O}(mn)$, где $m$ и $n$ - длины последовательностей.
+
+% TODO
+% 1. Общая постановка на функциях
+% 2. Постановка на последовательностях
+% 3. Алгоритм
+% 4. Улучшение алгоритма (не обращаем внимание на повторы)
+
+\newpage
+
+\section{Задача с действительными числами}
+
+Задачу нахождения общей подпоследовательности для двух 
+последовательностей $S^1$, $S^2$ с плавающей точкой можно поставить по-разному.
+
+Самый наивный вариант это получить от пользователя
+некую погрешность $\varepsilon$, с помощью которой мы
+должны будем определить является ли каждый $i$-ый
+элемент членом общей подпоследовательности или нет.
+
+Пытаясь решить эту задачу аналогично задаче с целыми числами
+мы столкнемся с несколькими трудностями:
+\begin{enumerate}
+    \item Нужно определиться как работать с данной погрешностью, ведь просто напросто
+    сравнивать разницу $i$-ого и $j$-ого элементов последоватностей с $\varepsilon$ 
+    и строить таблицу аналогично первой задаче не получится.
+
+    Например: $S^1$ и $S^2$ такие, что
+    $\Vert S^1 \Vert_2 < \varepsilon$ и $\Vert S^2 \Vert_2 < \varepsilon$.
+    Что это значит для нас в таком случае?
+    Это значит, что эти две последовательности будут совпадать,
+    так как $\forall i, j\ \vert S^1_i - S^2_j\vert < \varepsilon$, что
+    не будет правильным ответом.
+    \item Пусть мы придумали какой-то функционал $\phi(S^1_i, S^2_j)$,
+    который позволит нам как-то правильно заполнить таблицу.
+    Возникает следующая проблема. Как с помощью это функционала
+    понимать какой элемент является очередным элементом искомой
+    подпоследовательности?
+\end{enumerate}
+
+Посмотрим на нашу задачу под другим углом:
+
+Давайте предположим, что одна из последовательностей
+уже является наибольшей общей подпоследовательностью.
+Остается придумать как понять верна ли наша гипотеза.
+Попытаемся формализовать такую постановку.
+
+\subsection{Постановка задачи}
+    Для двух заданных последовательностей понять, можно ли сопоставить
+    одну последовательность с подмножеством значений другой последовательности?
+    Дать какое-либо определение сопоставлению и показать качество
+    получившегося сопоставления.
+
+\textit{Пояснительный примеры:}
+\begin{enumerate}
+    \item Интерпретируем задачу через непрерывные функции: \\
+    Рассмотрим две непрерывные функции одной переменной $f(x)$ на отрезке $[a, b]$ и $g(x)$
+    на отрезке $[c, d]$. \\
+    \textbf{Вопрос:}  Можно ли утверждать, что значения $g(x)$ на отрезке $[c, d]$ являются
+    подмножеством значений функции $f(x)$ на отрезке $I \subset [a, b]$?
+
+    Возьмем две функции: $f(x)$ на отрезке $[0, 5]$ и $g(x)$ на отрезке $[0, 2]$.
+
+        \begin{tikzpicture}
+            \begin{axis}[
+                xmin=0, xmax=5,
+                xtick distance = 1,
+                grid = both,
+                legend pos = north east,
+                width = 0.45\textwidth,
+                height = 0.3\textwidth
+            ]
+                \addplot[
+                    domain=0:5,
+                    samples=100,
+                    smooth,
+                    thick,
+                    blue
+                ] {exp(-x/2)*( sin(10 * deg(x) * cos(deg(x))) )};
+
+                \legend{
+                    $f(x)$
+                }
+
+            \end{axis}
+        \end{tikzpicture}
+        \begin{tikzpicture}
+            \begin{axis}[
+                xmin=0, xmax=2,
+                xtick distance = 1,
+                grid = both,
+                legend pos = north east,
+                width = 0.45\textwidth,
+                height = 0.3\textwidth
+            ]
+                \addplot[
+                    domain=0:2,
+                    samples=100,
+                    smooth,
+                    thick,
+                    red
+                ] {1.2*exp(-(x+1)/2)*( sin(10 * deg(x+1) * cos(deg(x+1))) )};
+
+                \legend{
+                    $g(x)$
+                }
+            \end{axis}
+        \end{tikzpicture}
+
+        Тогда наилучшим соответствим между $f$ и $g$ будет:
+        \begin{center}
+        \begin{tikzpicture}
+            \begin{axis}[
+                xmin=0, xmax=5,
+                xtick distance = 1,
+                grid = both,
+                legend pos = north east,
+                width = 0.6\textwidth,
+                height = 0.3\textwidth
+            ]
+                \addplot[
+                    domain=0:5,
+                    samples=100,
+                    smooth,
+                    thick,
+                    blue
+                ] {exp(-(x)/2)*( sin(10 * deg(x) * cos(deg(x))) )};
+
+                \addplot[
+                    domain=1:3,
+                    samples=100,
+                    smooth,
+                    red,
+                    thick
+                ] {1.2*exp(-(x)/2)*( sin(10 * deg(x) * cos(deg(x))) )};
+
+                \legend{
+                    $f(x)$,
+                    $g(x)$
+                }
+            \end{axis}
+        \end{tikzpicture}
+    \end{center}
+
+        \item 
+            \begin{enumerate}
+                \item Даны две последовательности
+                \[ S1 = \{1, 2.4, 2.5, 2.6, 4\},\ S2 = \{0.9, 1.1, 2.5, 3.9, 4.1\} \]
+                Тогда их наилучшим сопоставлением будет отображение:
+                \begin{figure} [h]
+                    \centering
+                    \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+                        \node[ele,label=above:$1$]   (a0) at (0,1) {};
+                        \node[ele,label=above:$2.4$] (a1) at (1,1) {};
+                        \node[ele,label=above:$2.5$] (a2) at (2,1) {};
+                        \node[ele,label=above:$2.6$] (a3) at (3,1) {};
+                        \node[ele,label=above:$4$]   (a4) at (4,1) {};
+
+                        \node[ele,label=below:$0.9$] (b0) at (0, 0) {};
+                        \node[ele,label=below:$1.1$] (b1) at (1, 0) {};
+                        \node[ele,label=below:$2.5$] (b2) at (2, 0) {};
+                        \node[ele,label=below:$3.9$] (b3) at (3, 0) {};
+                        \node[ele,label=below:$4.1$] (b4) at (4, 0) {};
+                    
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b0);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b1);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a1) -- (b2);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a2) -- (b2);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a3) -- (b2);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b3);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b4);
+                    \end{tikzpicture}
+                \end{figure}
+                \item \[ S1 = \{1,\ 3.4,\ 8,\ 3.6,\ 1\},\ S2 = \{3.5,\ 9,\ 2.8\} \]
+                \begin{figure} [h]
+                    \centering
+                    \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+                        \node[ele,label=above:$1$]   (a0) at (0,1) {};
+                        \node[ele,label=above:$3.4$] (a1) at (1,1) {};
+                        \node[ele,label=above:$8$]   (a2) at (2,1) {};
+                        \node[ele,label=above:$3.6$] (a3) at (3,1) {};
+                        \node[ele,label=above:$1$]   (a4) at (4,1) {};
+
+                        \node[ele,label=below:$3.5$]   (b0) at (1, 0) {};
+                        \node[ele,label=below:$9$]   (b1) at (2, 0) {};
+                        \node[ele,label=below:$2.8$] (b2) at (3, 0) {};
+
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b0);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a1) -- (b0);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a2) -- (b1);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a3) -- (b2);
+                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b3);
+                    \end{tikzpicture}
+                \end{figure}
+            \end{enumerate} 
+    \end{enumerate}
+
+\subsection{Введение в алгоритм}
+
+    Мы будем искать наилучшее сопоставление используя динамическое
+    программирование аналогично и первой задаче с целыми числами.
+
+    В качестве функционала качества рассмотрим функцию
+    $$M = \frac{1}{k}\sum_{i=1}^k(a_i-b_{j(i)})^2 \xrightarrow[\text{задача}]{} \min$$
+    где $k$ - количество сопоставлений в нашем алгоритме.
+
+    Вся задача теперь сводится к тому, чтобы отобразить одну 
+    последовательность в другую так, чтобы функционал качества
+    был минимальным.
+
+\subsection{Алгоритм}
+    Рассмотрим алгоритм для последовательностей $X = (x_1,\ldots,x_n)$,
+    $Y=(y_1,\ldots,y_m)$.
+
+    \begin{enumerate}
+        \item Создаем таблицу размера $n\times m$.
+        \item Заполняем эту таблицу следующим образом:
+    \end{enumerate}
+
+\subsubsection{Проверка алгоритма}
+\subsubsection{Возможные результаты}
+
 
 \end{document}
