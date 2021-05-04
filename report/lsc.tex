@@ -34,19 +34,20 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 
-\usetikzlibrary{matrix, tikzmark, calc,trees,positioning,arrows,fit,shapes}
+\usetikzlibrary{matrix, tikzmark, calc, trees, positioning,arrows,fit,shapes}
 \tikzset{ 
 table/.style={
   matrix of nodes,
   row sep=-\pgflinewidth,
   column sep=-\pgflinewidth,
-  nodes={draw, rectangle,text width=3em,align=center},
+  nodes={draw, rectangle,text width=2em,align=center},
   text depth=1.25ex,
   text height=2.5ex,
+  text width=1.5ex,
   nodes in empty cells
 },
-row 1/.style={nodes={fill=green!10,text depth=0.4ex,text height=2ex}},
-column 1/.style={nodes={fill=green!10}},
+row 1/.style={nodes={fill=green!10}},
+column 1/.style={nodes={fill=green!10,text width=2em}},
 }
 
 
@@ -204,18 +205,16 @@ $Y=(y_1,\ldots,y_m)$:
         \end{enumerate}
     \item Повторяем предыдущий шаг до заполнения таблицы.
     \item Получаем в правой нижней ячейке таблицы длину максимальной общей подпоследовательности.
-    \item Чтобы распечатать искомую подпоследовательность, начиинаем
+    \item Чтобы распечатать искомую подпоследовательность, начинаем
         с правого нижнего элемента и двигаемся по стрелкам. Добравшись
         до первой строки или столбца получим нашу последовательность.
 \end{enumerate}
 \subsection{Примеры}
     Рассмотирм две последовательности $X = \{C, B, D, A\}, Y = \{A,C,A,D,B\}$ и выполним
     для них алгоритм.
-    \begin{enumerate}
-        \item Составляем требуемую таблицу.
-    $$
+    \begin{center}
     \begin{tikzpicture}
-        \matrix(m)[table] {
+        \matrix(m)[table, label={1. Составляем требуемую таблицу.}] {
                     & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
         $\emptyset$ &       0     &  0  &  0  &  0  & 0 \\
           $A$       &       0     &     &     &     & \\
@@ -225,12 +224,8 @@ $Y=(y_1,\ldots,y_m)$:
           $B$       &       0     &     &     &     & \\
         };
     \end{tikzpicture}
-    $$
-    \item Заполним первую строку соответственно нашему алгоритму и
-    свойствам нашей функции LCS(S1, S2).
-    $$
     \begin{tikzpicture}
-        \matrix(m)[table] {
+        \matrix(m)[table, label={[align=center]above:2. Заполним первую строку соответственно\\свойствам нашей функции LCS(S1, S2)}] {
                     & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
         $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
           $A$       &       0     &  0  &  0  &  0  & 1  \\
@@ -253,12 +248,11 @@ $Y=(y_1,\ldots,y_m)$:
         \draw[->]  (m-3-6.center) -- (m-2-5.center);
         \end{scope}
         \end{tikzpicture}
-    $$
-        \item Повторим для последующих строк.
-    $$
+    \end{center}
+
+    \begin{center}
         \begin{tikzpicture}
-            % the matrix entries
-            \matrix (m) [table] {
+            \matrix (m) [table, label={3. Повторим для последующих строк.}] {
                         & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
             $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
               $A$       &       0     &  0  &  0  &  0  & 1  \\
@@ -305,12 +299,9 @@ $Y=(y_1,\ldots,y_m)$:
             \draw[->]  (m-7-6.center) -- (m-7-5.center);
             \end{scope}
         \end{tikzpicture}
-    $$
-        \item Значение в последней ячейке - длина наибольшей общей последовательности.
-    $$
+        % 4. Значение в последней ячейке - длина наибольшей общей последовательности.
         \begin{tikzpicture}
-            % the matrix entries
-            \matrix (m) [table] {
+            \matrix (m) [table, label={[align=center]above:4. Значение в последней ячейке - длина\\наибольшей общей последовательности}] {
                         & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
             $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
               $A$       &       0     &  0  &  0  &  0  & 1  \\
@@ -319,7 +310,6 @@ $Y=(y_1,\ldots,y_m)$:
               $D$       &       0     &  1  &  1  &  2  & 2  \\
               $B$       &       0     &  1  &  2  &  2  & |[fill=gray!20]|2  \\
             };
-            % the arrows
             \begin{scope}[shorten >=7pt,shorten <= 7pt]
             \draw[->]  (m-3-3.center) -- (m-2-3.center);
             \draw[->]  (m-3-3.center) -- (m-3-2.center);
@@ -357,11 +347,10 @@ $Y=(y_1,\ldots,y_m)$:
             \draw[->]  (m-7-6.center) -- (m-7-5.center);
             \end{scope}
         \end{tikzpicture}
-    $$
-        \item Находим общие подпоследовательности, двигаясь по стрелочкам.
-    $$
+    \end{center}
+    \begin{center}
         \begin{tikzpicture}
-            \matrix (m) [table] {
+            \matrix (m) [table, label ={\text{5. Находим общие подпоследовательности, двигаясь по стрелочкам.}}] {
                         & $\emptyset$ & $C$ & $B$ & $D$ & $A$ \\
             $\emptyset$ &       0     &  0  &  0  &  0  & 0  \\
               $A$       & |[fill=red!20!yellow!20!blue!20!]|0     &  0  &  0  &  0  & 1  \\
@@ -407,8 +396,8 @@ $Y=(y_1,\ldots,y_m)$:
             \draw[->]  (m-7-6.center) -- (m-7-5.center);
             \end{scope}
         \end{tikzpicture}
-        $$
-    \end{enumerate}
+    \end{center}
+
     Таким образом, получившиеся наибольшие общие подпоследовательности:
     $$\{C, B\}, \{C, A\}, \{C, D\}$$
     \begin{remark}
@@ -470,8 +459,8 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
 
 \section{Задача с действительными числами}
 
-Задачу нахождения общей подпоследовательности для двух 
-последовательностей $S^1$, $S^2$ с плавающей точкой можно поставить по-разному.
+Задачу нахождения общей подпоследовательности для двух последовательностей \\
+$X = \{x_1, \ldots, x_n\}$, $Y = \{y_1, \ldots, y_m\}$ с плавающей точкой можно поставить по-разному.
 
 Самый наивный вариант это получить от пользователя
 некую погрешность $\varepsilon$, с помощью которой мы
@@ -485,13 +474,13 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
     сравнивать разницу $i$-ого и $j$-ого элементов последоватностей с $\varepsilon$ 
     и строить таблицу аналогично первой задаче не получится.
 
-    Например: $S^1$ и $S^2$ такие, что
-    $\Vert S^1 \Vert_2 < \varepsilon$ и $\Vert S^2 \Vert_2 < \varepsilon$.
+    Например: $X$ и $Y$ такие, что
+    $\Vert X \Vert_2 < \varepsilon$ и $\Vert Y \Vert_2 < \varepsilon$.
     Что это значит для нас в таком случае?
     Это значит, что эти две последовательности будут совпадать,
-    так как $\forall i, j\ \vert S^1_i - S^2_j\vert < \varepsilon$, что
+    так как $\forall i, j\ \vert X_i - Y_j\vert < \varepsilon$, что
     не будет правильным ответом.
-    \item Пусть мы придумали какой-то функционал $\phi(S^1_i, S^2_j)$,
+    \item Пусть мы придумали какой-то функционал $\phi(X_i, Y_j)$,
     который позволит нам как-то правильно заполнить таблицу.
     Возникает следующая проблема. Как с помощью это функционала
     понимать какой элемент является очередным элементом искомой
@@ -607,8 +596,7 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
                 \item Даны две последовательности
                 \[ S1 = \{1, 2.4, 2.5, 2.6, 4\},\ S2 = \{0.9, 1.1, 2.5, 3.9, 4.1\} \]
                 Тогда их наилучшим сопоставлением будет отображение:
-                \begin{figure} [h]
-                    \centering
+                \begin{center}
                     \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
                         \node[ele,label=above:$1$]   (a0) at (0,1) {};
                         \node[ele,label=above:$2.4$] (a1) at (1,1) {};
@@ -621,19 +609,19 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
                         \node[ele,label=below:$2.5$] (b2) at (2, 0) {};
                         \node[ele,label=below:$3.9$] (b3) at (3, 0) {};
                         \node[ele,label=below:$4.1$] (b4) at (4, 0) {};
-                    
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b0);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b1);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a1) -- (b2);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a2) -- (b2);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a3) -- (b2);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b3);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b4);
+                        \begin{scope} [<->,thick,shorten <=2,shorten >=2]
+                            \draw (a0) -- (b0);
+                            \draw (a0) -- (b1);
+                            \draw (a1) -- (b2);
+                            \draw (a2) -- (b2);
+                            \draw (a3) -- (b2);
+                            \draw (a4) -- (b3);
+                            \draw (a4) -- (b4);
+                        \end{scope}
                     \end{tikzpicture}
-                \end{figure}
+                \end{center}
                 \item \[ S1 = \{1,\ 3.4,\ 8,\ 3.6,\ 1\},\ S2 = \{3.5,\ 9,\ 2.8\} \]
-                \begin{figure} [h]
-                    \centering
+                \begin{center}
                     \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
                         \node[ele,label=above:$1$]   (a0) at (0,1) {};
                         \node[ele,label=above:$3.4$] (a1) at (1,1) {};
@@ -644,14 +632,15 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
                         \node[ele,label=below:$3.5$]   (b0) at (1, 0) {};
                         \node[ele,label=below:$9$]   (b1) at (2, 0) {};
                         \node[ele,label=below:$2.8$] (b2) at (3, 0) {};
-
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a0) -- (b0);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a1) -- (b0);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a2) -- (b1);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a3) -- (b2);
-                        \draw[<->,thick,shorten <=2,shorten >=2] (a4) -- (b3);
+                        \begin{scope} [<->,thick,shorten <=2,shorten >=2]
+                            \draw (a0) -- (b0);
+                            \draw (a1) -- (b0);
+                            \draw (a2) -- (b1);
+                            \draw (a3) -- (b2);
+                            \draw (a4) -- (b3);
+                        \end{scope}
                     \end{tikzpicture}
-                \end{figure}
+                \end{center}
             \end{enumerate} 
     \end{enumerate}
 
@@ -660,22 +649,267 @@ std::vector<T> LCS(const std::vector<T>& S1, const std::vector<T>& S2) {
     Мы будем искать наилучшее сопоставление используя динамическое
     программирование аналогично и первой задаче с целыми числами.
 
-    В качестве функционала качества рассмотрим функцию
-    $$M = \frac{1}{k}\sum_{i=1}^k(a_i-b_{j(i)})^2 \xrightarrow[\text{задача}]{} \min$$
-    где $k$ - количество сопоставлений в нашем алгоритме.
+    В качестве функционала рассмотрим функцию
+    $$M(X_{i}, Y_{j}) = \frac{1}{k}\sum_{i=1}^k(x_i-y_{j(i)})^2$$
+    где $X_i, Y_j$ - префиксы соответственно последовательностей $X, Y$, а
+    $k$ - количество сопоставлений в нашем алгоритме.
 
     Вся задача теперь сводится к тому, чтобы отобразить одну 
-    последовательность в другую так, чтобы функционал качества
+    последовательность в другую так, чтобы функционал
     был минимальным.
 
-\subsection{Алгоритм}
+    $$M \xrightarrow[\text{задача}]{} \min$$
+
+    Рассмотрим поподробнее как происходит заполнение таблицы
+    и соответственно сопоставление $i$-го элемента первой последовательности с $j$-ым элементом
+    второй.
+
+    Представим, что для $(i-1)$-го и $(j-1)$-го элементов мы уже
+    проделали алгоритм и имеем некоторые сопоставления.
+
+    \begin{center}        
+        \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+            \node[ele,label=above:$x_0$]     (a0)   at (-5,1) {};
+            \node[ele,label=above:$x_{j-2}$] (aj-2) at (-2,1) {};
+            \node[ele,label=above:$x_{j-1}$] (aj-1) at (-1,1) {};
+            \node[ele,label=above:$x_{j}$]   (aj)   at (0,1) {};
+            \node[ele,label=above:$x_{j+1}$] (aj+1) at (1,1) {};
+
+            \node[ele,label=below:$y_0$]     (b0)   at (-5,0) {};
+            \node[ele,label=below:$y_{i-2}$] (bi-2) at (-3,0) {};
+            \node[ele,label=below:$y_{i-1}$] (bi-1) at (-2,0) {};
+            \node[ele,label=below:$y_{i}$]   (bi)   at (-1, 0) {};
+            \node[ele,label=below:$y_{i+1}$] (bi+1) at (0, 0) {};
+
+            \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                \draw (a0)   -- (b0);
+                \draw (a0)   -- (aj-1);
+                \draw (aj-1) -- (bi-1);
+                \draw (b0)   -- (bi-1);
+            \end{scope}
+        \end{tikzpicture}
+    \end{center}
+
+
+    Тогда для $j$-го и $i$-го элемента могут быть следующие представления.
+
+    \begin{center}
+        \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+            \node[] (a) at (-3,1) {};
+            \node[ele,label=above:$x_{j-2}$] (aj-2) at (-2,1) {};
+            \node[ele,label=above:$x_{j-1}$] (aj-1) at (-1,1) {};
+            \node[ele,label=above:$x_{j}$]   (aj)   at (0,1) {};
+        
+            \node[] (b) at (-4,0) {};
+            \node[ele,label=below:$y_{i-2}$] (bi-2) at (-3,0) {};
+            \node[ele,label=below:$y_{i-1}$] (bi-1) at (-2,0) {};
+            \node[ele,label=below:$y_{i}$]   (bi)   at (-1, 0) {};
+            
+            \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                \draw (a) -- (aj-1);
+                \draw (aj-1) -- (bi-1);
+                \draw (b) -- (bi-1);
+            \end{scope}
+            \draw[dotted, ultra thick, blue,shorten <=2,shorten >=2] (aj-1) -- (bi);
+        \end{tikzpicture}
+        \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+            \node[] (a) at (-3,1) {};
+            \node[ele,label=above:$x_{j-2}$] (aj-2) at (-2,1) {};
+            \node[ele,label=above:$x_{j-1}$] (aj-1) at (-1,1) {};
+            \node[ele,label=above:$x_{j}$]   (aj)   at (0,1) {};
+        
+            \node[] (b) at (-4,0) {};
+            \node[ele,label=below:$y_{i-2}$] (bi-2) at (-3,0) {};
+            \node[ele,label=below:$y_{i-1}$] (bi-1) at (-2,0) {};
+            \node[ele,label=below:$y_{i}$]   (bi)   at (-1, 0) {};
+            
+            \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                \draw (a) -- (aj-1);
+                \draw (aj-1) -- (bi-1);
+                \draw (b) -- (bi-1);
+            \end{scope}
+            \draw[dotted, ultra thick, red, shorten <=2,shorten >=2] (bi-1) -- (aj);
+        \end{tikzpicture}
+        \begin{tikzpicture}[ele/.style={fill=black,minimum width=.8pt,inner sep=1pt}]
+            \node[] (a) at (-3,1) {};
+            \node[ele,label=above:$x_{j-2}$] (aj-2) at (-2,1) {};
+            \node[ele,label=above:$x_{j-1}$] (aj-1) at (-1,1) {};
+            \node[ele,label=above:$x_{j}$]   (aj)   at (0,1) {};
+        
+            \node[] (b) at (-4,0) {};
+            \node[ele,label=below:$y_{i-2}$] (bi-2) at (-3,0) {};
+            \node[ele,label=below:$y_{i-1}$] (bi-1) at (-2,0) {};
+            \node[ele,label=below:$y_{i}$]   (bi)   at (-1, 0) {};
+            
+            \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                \draw (a) -- (aj-1);
+                \draw (aj-1) -- (bi-1);
+                \draw (b) -- (bi-1);
+            \end{scope}
+            \draw[dotted, ultra thick, green, shorten <=2,shorten >=2] (bi) -- (aj);
+        \end{tikzpicture}
+    \end{center}
+
+    Как это выглядит на нашей таблице? Построим таблицу и посмотрим подробнее
+    \begin{center}
+        \begin{tikzpicture}
+            \matrix (m) [
+                matrix of nodes,
+                row sep=-\pgflinewidth,
+                column sep=-\pgflinewidth,
+                nodes={draw, text width=3.6em,align=center},
+                text depth=1.25ex,
+                text height=2.5ex,
+                text width=1.5ex,
+                nodes in empty cells
+              ] {
+                       & $\ldots$ & $x_{j-1}$       & $x_{j}$      & $x_{j+1}$   \\
+            $\ldots$   &  \ldots  &  \ldots         &  \ldots      & \ldots  \\
+            $y_{i-1}$  &  \ldots  &  $M_{j-1, i-1}$ & $M_{j, i-1}$ &     \\
+            $y_{i}$    &  \ldots  &  $M_{j-1, i}$   &$M_{j, i}$    &        \\
+            $y_{i+1}$  &          &                 &              &             \\
+            };
+            \begin{scope} [->, ultra thick, shorten >= 10, shorten <= 10, dotted]
+            \draw[blue] (m-4-3.center) -- (m-4-4.center);
+            \draw[green] (m-3-3.center) -- (m-4-4.center);
+            \draw[red] (m-3-4.center) -- (m-4-4.center);
+            \end{scope}
+        \end{tikzpicture}
+    \end{center}
+    
+    Среди этих трех вариантов мы будем выбирать тот, который даст
+    меньшее вложение в нашу сумму итогового функционала.
+
+    \textit{Замечание:} Наименьшому функционалу могут
+    соответствовать разные сопоставления.
+
+    \begin{enumerate}
+        \item Следующие значения в таблице описывают такое соответствие:
+        \begin{center}
+            \begin{tikzpicture}[matr/.style={
+                matrix of nodes,
+                row sep=-\pgflinewidth,
+                column sep=-\pgflinewidth,
+                nodes={draw, text width=3.6em,align=center},
+                text depth=1.25ex,
+                text height=2.5ex,
+                text width=1.5ex,
+                nodes in empty cells
+            },
+            baseline=(current bounding box.center),
+            row 2/.style={nodes={fill=red!10}}]
+            \matrix (m) [matr] {
+                            & $x_0$    & $\ldots$ & $\ldots$ & $x_n$   \\
+                $y_0$    &  $M_{0,0}$  &  \ldots  & \ldots   & $M_{n,0}$  \\
+                $\ldots$ &  \ldots  &  \ldots  & \ldots   & \ldots    \\
+            };
+            \end{tikzpicture}
+            $\Leftrightarrow$
+            \begin{tikzpicture}[
+                ele/.style={fill=black,minimum width=.8pt,inner sep=1pt},
+                baseline=(current bounding box.center)
+            ]
+                \node[ele,label=above:$x_0$]     (a0)   at (-5,1) {};
+                \node[ele,label=above:$x_{j-1}$] (aj-1) at (-3,1) {};
+                \node[ele,label=above:$x_{j}$] (aj) at (-2,1) {};
+                \node[ele,label=above:$x_{j+1}$] (aj+1) at (-1,1) {};
+                \node[]   (a)   at (0,1) {};
+                \node[ele,label=above:$x_n$] (an) at (1,1) {};
+    
+                \node[ele,label=below:$y_0$]     (b0)   at (-5,0) {};
+                \node[ele,label=below:$y_{i-1}$] (bi-1) at (-4,0) {};
+                \node[ele,label=below:$y_{i}$]   (bi)   at (-3, 0) {};
+                \node[ele,label=below:$y_{n}$] (bn) at (-1, 0) {};
+    
+                \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                    \draw (b0)   -- (a0);
+                    \draw (b0)   -- (aj-1);
+                    \draw (b0)   -- (aj);
+                    \draw (b0)   -- (aj+1);
+                    \draw (b0)   -- (an);
+                \end{scope}
+            \end{tikzpicture}
+        \end{center}
+
+        \item Аналогично столбцу:
+
+        \begin{center}
+            \begin{tikzpicture}[matr/.style={
+                matrix of nodes,
+                row sep=-\pgflinewidth,
+                column sep=-\pgflinewidth,
+                nodes={draw, text width=3.6em,align=center},
+                text depth=1.25ex,
+                text height=2.5ex,
+                text width=1.5ex,
+                nodes in empty cells
+            },
+            baseline=(current bounding box.center),
+            column 2/.style={nodes={fill=red!10}}]
+            \matrix (m) [matr] {
+                            & $x_0$   & $\ldots$ \\
+                $y_0$    &  $M_{0,0}$ &  \ldots  \\
+                $\ldots$ &  \ldots    &  \ldots  \\
+                $\ldots$ &  \ldots    &  \ldots  \\
+                $y_n$    &  \ldots    &  \ldots  \\
+            };
+            \end{tikzpicture}
+            $\Leftrightarrow$
+            \begin{tikzpicture}[
+                ele/.style={fill=black,minimum width=.8pt,inner sep=1pt},
+                baseline=(current bounding box.center)
+            ]
+                \node[ele,label=above:$x_0$]     (a0)   at (-5,1) {};
+                \node[ele,label=above:$x_{j-1}$] (aj-1) at (-3,1) {};
+                \node[ele,label=above:$x_{j}$] (aj) at (-2,1) {};
+                \node[ele,label=above:$x_{j+1}$] (aj+1) at (-1,1) {};
+                \node[]   (aj)   at (0,1) {};
+                \node[ele,label=above:$x_n$] (an) at (1,1) {};
+    
+                \node[ele,label=below:$y_0$]     (b0)   at (-5,0) {};
+                \node[ele,label=below:$y_{i-1}$] (bi-1) at (-4,0) {};
+                \node[ele,label=below:$y_{i}$]   (bi)   at (-3, 0) {};
+                \node[ele,label=below:$y_{n}$]   (bn) at (-1, 0) {};
+    
+                \begin{scope}[ultra thick,shorten <=2,shorten >=2]
+                    \draw (a0)   -- (b0);
+                    \draw (a0)   -- (bi-1);
+                    \draw (a0)   -- (bi);
+                    \draw (a0)   -- (bn);
+                \end{scope}
+            \end{tikzpicture}
+        \end{center}
+
+    \end{enumerate}
+    
+    \subsection{Алгоритм}
     Рассмотрим алгоритм для последовательностей $X = (x_1,\ldots,x_n)$,
     $Y=(y_1,\ldots,y_m)$.
 
     \begin{enumerate}
         \item Создаем таблицу размера $n\times m$.
-        \item Заполняем эту таблицу следующим образом:
+        \item Заполняем первый столбец и первую строку,
+            вычисляя каждое значение ячейки аналогично замечанию.
+        \item Далее заполняем таблицу следующим образом:
+            \begin{enumerate}
+                \item Если элемент на текущей строке и текущей колонке
+                    дает минимальный вклад к функционалу в верхней или левой
+                    ячейке, то кладем получившееся значение в текущую
+                    ячейку и проводим стрелку сверху или слева.
+                \item Иначе берем значение функционала с предыдущей колонки
+                    и предыдущей строки и заполняем текущую ячейку. Проводим стрелку
+                    к диагональному элементу.
+            \end{enumerate}
+        \item Повторяем предыдущий шаг до заполнения таблицы.
+        \item Получаем в правой нижней ячейке самое минимальное значение функционала.
+        \item Чтобы получить график функционала, начинаем
+            с правого нижнего элемента и двигаемся по стрелкам.
     \end{enumerate}
+
+    Возможное Улучшение:
+    Брать класть в новую ячейку не наибольшую разницу
+    между прежним значением функционала, а брать получившееся
+    наименьшее значение функционала среди остальных функционалов  
 
 \subsubsection{Проверка алгоритма}
 \subsubsection{Возможные результаты}
