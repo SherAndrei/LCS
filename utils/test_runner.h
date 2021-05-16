@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <utility>
 
 void Assert(bool b, const std::string& hint = {});
 
@@ -49,6 +50,11 @@ std::ostream& operator << (std::ostream& os, const std::map<K, V>& m) {
         os << kv.first << ": " << kv.second;
     }
     return os << "}";
+}
+
+template <class T, class U>
+std::ostream& operator << (std::ostream& os, const std::pair<T, U>& p) {
+    return os << '<' << p.first << ", " << p.second << '>';
 }
 
 template<class T, class U>
