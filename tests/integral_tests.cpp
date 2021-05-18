@@ -9,7 +9,7 @@
 
 namespace {
 
-using sequence_t = typename lcs::IntegralTable::Sequence_t;
+using sequence_t = typename lcs::IntegralTable::sequence_t;
 using Sequence = typename lcs::IntegralTable::Sequence;
 
 void do_test(
@@ -19,11 +19,10 @@ void do_test(
     bool do_table = false) {
     std::vector<sequence_t> result;
     if (do_table) {
-        lcs::IntegralTable it;
-        {
-            LOG_DURATION("table filling");
-            it.fill(s1, s2);
-        }
+        LogDuration timer("table filling");
+        lcs::IntegralTable it(s1, s2);
+        timer.~LogDuration();
+
         std::cout << it << std::endl;
     }
     {

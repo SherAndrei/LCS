@@ -9,23 +9,18 @@
 
 namespace lcs {
 
-template<typename sequence_t, typename node_t>
+template<typename S, typename N>
 class BaseTable {
  public:
-    using Sequence = std::vector<sequence_t>;
-    using Sequence_t = sequence_t;
+    using Sequence   = std::vector<S>;
+    using sequence_t = S;
+    using node_t     = N;
 
  protected:
-    BaseTable() = default;
-
-    BaseTable(const Sequence& S1,
-              const Sequence& S2)
-        : _rows(S1.size())
-        , _columns(S2.size())
+    BaseTable(size_t nrows, size_t ncolumns)
+        : _rows(nrows)
+        , _columns(ncolumns)
         , _table(std::make_unique<node_t[]>(_rows * _columns)) {}
-
-    virtual void fill(const Sequence& S1,
-                      const Sequence& S2) = 0;
 
     virtual ~BaseTable() = default;
 
@@ -63,21 +58,12 @@ class BaseTable {
 class IntegralTable final : public BaseTable<char, uint32_t>{
  public:
     using BaseTable::Sequence;
-    using BaseTable::Sequence_t;
+    using BaseTable::sequence_t;
+    using BaseTable::node_t;
 
  public:
-    IntegralTable() = default;
-    IntegralTable(const Sequence& S1,
-                  const Sequence& S2)
-        : BaseTable(S1, S2) {
-            fill(S1, S2);
-    }
-
-    void fill(const Sequence& S1, const Sequence& S2) override {
-        _rows = S1.size() + 1;
-        _columns = S2.size() + 1;
-        _table = std::make_unique<uint32_t[]>(_rows * _columns);
-
+    IntegralTable(const Sequence& S1, const Sequence& S2)
+        : BaseTable(S1.size() + 1, S2.size() + 1) {
         size_t i, j;
         for (i = 0u; i <= _rows - 1; ++i) {
             for (j = 0u; j <= _columns - 1; ++j) {
