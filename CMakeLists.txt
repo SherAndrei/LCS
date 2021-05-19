@@ -8,7 +8,7 @@ add_compile_options( -W  -Wall      -Werror         -pedantic
                      -Wcast-align   -Wpointer-arith -Wformat-security
                      -Wformat       -Wwrite-strings -Wcast-align
                      -Wno-long-long -Wunused        -Wcast-qual
-                     -Wmissing-declarations
+                     -Wmissing-declarations -Wfatal-errors
                      -fstack-protector-all)
 
 include_directories(utils)

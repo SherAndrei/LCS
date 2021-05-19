@@ -1,2 +1,6 @@
-add_executable(integral_tests.out ./integral_tests.cpp)
-target_link_libraries(integral_tests.out LCS)
+link_libraries(LCS)
+
+foreach(test integral_tests floating_tests)
+    add_executable(${test}.out ${test}.cpp)    
+endforeach(test)
+

@@ -3,27 +3,26 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-using namespace std::chrono;
+namespace chr = std::chrono;
 
 class LogDuration {
  public:
-    explicit LogDuration(const string& msg = "")
+    explicit LogDuration(const std::string& msg = "")
         : message(msg + ": ")
-        , start(steady_clock::now()) {
+        , start(chr::steady_clock::now()) {
     }
 
     ~LogDuration() {
-        auto finish = steady_clock::now();
+        auto finish = chr::steady_clock::now();
         auto dur = finish - start;
-        cerr << message
-            << duration_cast<microseconds>(dur).count()
+        std::cerr << message
+            << chr::duration_cast<chr::microseconds>(dur).count()
             << " us ("
-            << duration_cast<milliseconds>(dur).count() << " ms)\n";
+            << chr::duration_cast<chr::milliseconds>(dur).count() << " ms)\n";
     }
  private:
-    string message;
-    steady_clock::time_point start;
+    std::string message;
+    chr::steady_clock::time_point start;
 };
 
 

@@ -16,6 +16,10 @@ class BaseTable {
     using sequence_t = S;
     using node_t     = N;
 
+ public:
+    using iterator = node_t*;
+    using const_iterator = const node_t*;
+
  protected:
     BaseTable(size_t nrows, size_t ncolumns)
         : _rows(nrows)
@@ -30,6 +34,14 @@ class BaseTable {
     }
 
  public:
+    iterator begin() { return _table.get(); }
+    iterator end()   { return _table.get() + _rows * _columns; }
+    const_iterator begin() const { return _table.get(); }
+    const_iterator end()   const { return _table.get() + _rows * _columns; }
+
+    size_t nrows()    const { return _rows; }
+    size_t ncolumns() const { return _columns; }
+
     node_t at(size_t i, size_t j) const {
         return _table.get()[i * _columns + j];
     }
@@ -77,6 +89,30 @@ class IntegralTable final : public BaseTable<char, uint32_t>{
         }
     }
 };
+
+class FloatingTable final : public BaseTable<double, double> {
+ public:
+    using BaseTable::Sequence;
+    using BaseTable::sequence_t;
+    using BaseTable::node_t;
+
+ public:
+    FloatingTable(const Sequence& S1,
+                  const Sequence& S2)
+        : BaseTable(S1.size(), S2.size()) {
+        size_t i, j;
+        for (i = 0u; i < _rows; ++i) {
+            for (j = 0u; j < _columns; ++j) {
+                at(i, j) = metric(S1[i], S2[j]);
+            }
+        }
+    }
+
+    static double metric(double x_i, double y_j) {
+        return std::pow(x_i - y_j, 2);
+    }
+};
+
 
 }  // namespace lcs
 
