@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PROFILE_H
+#define PROFILE_H
+
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -31,3 +33,5 @@ class LogDuration {
 
 #define LOG_DURATION(message) \
   LogDuration UNIQ_ID(__LINE__){message};
+
+#endif  // PROFILE_H

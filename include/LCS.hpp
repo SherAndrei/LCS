@@ -17,23 +17,20 @@ using FloatingSequence = FloatingTable::Sequence;
 
 class Mapper {
  public:
-    using mapping_t = std::vector<std::pair<size_t, size_t>>;
+    using mapping_t = std::vector<std::pair<std::size_t, std::size_t>>;
 
  public:
-    Mapper(const FloatingSequence& S1, const FloatingSequence& S2);
-
-    mapping_t mapping();
+    explicit Mapper(const FloatingTable& table);
+    const mapping_t& mapping() const;
 
  public:
     const FloatingTable& table() const;
     double res_metric() const;
 
  private:
-    // TODO remove s1 and s2 references
-    const FloatingSequence& _S1;
-    const FloatingSequence& _S2;
-    const FloatingTable _table;
-    double _res_metric;
+    const FloatingTable& _table;
+    mapping_t _mapping = {};
+    double _res_metric = 0.;
 };
 
 }  // namespace lcs

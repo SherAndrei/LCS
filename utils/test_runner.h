@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TEST_RUNNER_H
+#define TEST_RUNNER_H
+
 #include <iostream>
 #include <map>
 #include <set>
@@ -80,12 +82,10 @@ class TestRunner {
         try {
             func();
             std::cerr << test_name << " OK" << std::endl;
-        }
-        catch (std::exception& e) {
+        } catch (std::exception& e) {
             ++fail_count;
             std::cerr << test_name << " fail: " << e.what() << std::endl;
-        }
-        catch (...) {
+        } catch (...) {
             ++fail_count;
             std::cerr << "Unknown exception caught" << std::endl;
         }
@@ -103,14 +103,14 @@ class TestRunner {
 };
 
 #define ASSERT_EQUAL(x, y) {             \
-  std::ostringstream _local_os;               \
+  std::ostringstream _local_os;          \
   _local_os << #x << " != " << #y << ", "\
     << __FILE__ << ":" << __LINE__;      \
   AssertEqual(x, y, _local_os.str());    \
 }
 
 #define ASSERT(x) {                 \
-  std::ostringstream _local_os;          \
+  std::ostringstream _local_os;     \
   _local_os << #x << " is false, "  \
     << __FILE__ << ":" << __LINE__; \
   Assert(x, _local_os.str());       \
@@ -119,3 +119,4 @@ class TestRunner {
 #define RUN_TEST(tr, func)    \
   tr.RunTest(func, #func);
 
+#endif  // TEST_RUNNER_H

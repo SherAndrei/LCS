@@ -25,24 +25,21 @@ find(const IntegralSequence& S1, const IntegralSequence& S2) {
 
 using mapping_t = Mapper::mapping_t;
 
-Mapper::Mapper(const FloatingSequence& S1, const FloatingSequence& S2)
-    : _S1(S1), _S2(S2), _table(S1, S2), _res_metric(0.) {}
-
-mapping_t Mapper::mapping() {
+Mapper::Mapper(const FloatingTable& table)
+    : _table(table) {
     size_t counter = 0;
-    mapping_t mapping;
-    mapping.reserve(std::min(_S1.size(), _S2.size()));
+    _mapping.reserve(std::min(_table.nrows(), _table.ncolumns()));
     // (i + 1, j) (i + 1, j + 1), (i, j + 1)
     std::array<double, 3> next_elems;
 
-    auto [row_begin, row_end] = std::make_pair(_table.begin(), _table.begin() + _table.ncolumns());
-    size_t starting_point = std::min_element(row_begin, row_end) - row_begin;
+    // auto [row_begin, row_end] = std::make_pair(_table.begin(), _table.begin() + _table.ncolumns());
+    // size_t starting_point = std::min_element(row_begin, row_end) - row_begin;
 
-    for (size_t i = 0, j = starting_point;;) {
+    for (size_t i = 0, j = 0;;) {
         _res_metric += _table.at(i, j);
         counter++;
-        mapping.emplace_back(i, j);
-        if (i + 1 < _S1.size() && j + 1 < _S2.size()) {
+        _mapping.emplace_back(i, j);
+        if (i + 1 < _table.nrows() && j + 1 < _table.ncolumns()) {
             next_elems = {_table.at(i+1, j), _table.at(i+1, j+1), _table.at(i, j+1)};
             auto pos = std::min_element(next_elems.begin(), next_elems.end());
 
@@ -53,16 +50,19 @@ mapping_t Mapper::mapping() {
             } else {
                 i++, j++;
             }
-        } else if (i + 1 == _S1.size() && j + 1 < _S2.size()) {
+        } else if (i + 1 == _table.nrows() && j + 1 < _table.ncolumns()) {
             j++;
-        } else if (j + 1 == _S2.size() && i + 1 < _S1.size()) {
+        } else if (i + 1 < _table.nrows() && j + 1 == _table.ncolumns()) {
             i++;
-        } else if (i + 1 == _S1.size() && j + 1 == _S2.size()) {
+        } else if (i + 1 == _table.nrows() && j + 1 == _table.ncolumns()) {
             break;
         }
     }
     _res_metric /= counter;
-    return mapping;
+}
+
+const mapping_t& Mapper::mapping() const {
+    return _mapping;
 }
 
 const FloatingTable& Mapper::table() const {
