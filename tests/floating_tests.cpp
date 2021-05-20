@@ -62,7 +62,7 @@ inline void PlotMapping(
 
     std::ofstream map("mapping.txt");
     for (auto&& [idx_s1, idx_s2] : mapping) {
-        map << s1_points[idx_s1] << '\n' << s2_points[idx_s2] << "\n      \n";
+        map << s1_points[idx_s1] << '\n' << s2_points[idx_s2] << "\n\n";
     }
 }
 
@@ -94,6 +94,7 @@ void doTest(
         }
         {
             std::ofstream map("map.txt");
+            map << mp.res_metric() << '\n';
             map << table << '\n';
             map << mapping << '\n';
         }
@@ -108,8 +109,7 @@ void doTest(
         ASSERT_EQUAL(assert_mapping, mapping);
 }
 
-void testTextFiles() {
-#if 1
+void testSmall() {
     doTest(
         "tests/00.one_to_one/seq1.txt",
         "tests/00.one_to_one/seq2.txt",
@@ -127,6 +127,9 @@ void testTextFiles() {
         9.9, 10.1,
         {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5},
          {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}});
+}
+
+void testConstants() {
     for (const std::string& test_name : {
             "03.constants", "05.increasing", "06.decreasing"
             }) {
@@ -141,6 +144,9 @@ void testTextFiles() {
         "tests/04.diff_constants/seq2.txt",
         0.9, 1.1,
         {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}});
+}
+
+void testVarious() {
     doTest(
         "tests/07.simple/seq1.txt",
         "tests/07.simple/seq2.txt",
@@ -151,15 +157,21 @@ void testTextFiles() {
         "tests/08.unequal/seq2.txt",
         0, 10,
         {{0, 0}, {1, 0}, {2, 1}, {3, 2}, {4, 2}});
-#elif 0
-    doTest("tests/funcs/seq1.txt", "tests/funcs/seq2.txt",
-            0., 0., {}, true);
-#endif
+}
+
+void testFuncs() {
+    doTest("tests/funcs/sin/seq1.txt", "tests/funcs/sin/seq2.txt",
+            0., 4e-5, {});
+    doTest("tests/funcs/cont/seq1.txt", "tests/funcs/cont/seq2.txt",
+            0., 0, {}, true);
 }
 
 }  // namespace
 
 int main() {
     TestRunner tr;
-    RUN_TEST(tr, testTextFiles);
+    RUN_TEST(tr, testSmall);
+    RUN_TEST(tr, testConstants);
+    RUN_TEST(tr, testVarious);
+    RUN_TEST(tr, testFuncs);
 }
