@@ -28,6 +28,7 @@ using mapping_t = Mapper::mapping_t;
 Mapper::Mapper(const FloatingTable& table)
     : _table(table) {
     size_t counter = 0;
+    size_t row_penalty = 1., column_penalty = 1.;
     _mapping.reserve(_table.nrows() + _table.ncolumns());
     _map_func.reserve(_table.nrows() + _table.ncolumns());
     // (i + 1, j + 1), (i + 1, j), , (i, j + 1)
@@ -46,14 +47,20 @@ Mapper::Mapper(const FloatingTable& table)
             i++;
             continue;
         }
-        next_elems = {table.at(i+1, j+1), table.at(i+1, j), table.at(i, j+1)};
+        next_elems = {
+            table.at(i+1, j+1),
+            row_penalty * table.at(i+1, j),
+            column_penalty * table.at(i, j+1)
+        };
         auto min_pos = std::min_element(next_elems.begin(), next_elems.end());
-        if (min_pos == next_elems.begin())
+        if (min_pos == next_elems.begin()) {
+            row_penalty = column_penalty = 1;
             i++, j++;
-        else if (min_pos == std::next(next_elems.begin()))
-            i++;
-        else
-            j++;
+        } else if (min_pos == std::next(next_elems.begin())) {
+            row_penalty++, i++;
+        } else {
+            column_penalty++, j++;
+        }
     }
 
     _res_metric /= counter;
