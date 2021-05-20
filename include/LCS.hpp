@@ -22,6 +22,7 @@ class Mapper {
  public:
     explicit Mapper(const FloatingTable& table);
     const mapping_t& mapping() const;
+    std::vector<double> map_function() const;
 
  public:
     const FloatingTable& table() const;
@@ -30,6 +31,7 @@ class Mapper {
  private:
     const FloatingTable& _table;
     mapping_t _mapping = {};
+    std::vector<double> _map_func = {};
     double _res_metric = 0.;
 };
 

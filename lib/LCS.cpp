@@ -29,6 +29,7 @@ Mapper::Mapper(const FloatingTable& table)
     : _table(table) {
     size_t counter = 0;
     _mapping.reserve(std::min(_table.nrows(), _table.ncolumns()));
+    _map_func.reserve(std::min(_table.nrows(), _table.ncolumns()));
     // (i + 1, j) (i + 1, j + 1), (i, j + 1)
     std::array<double, 3> next_elems;
 
@@ -38,6 +39,7 @@ Mapper::Mapper(const FloatingTable& table)
     for (size_t i = 0, j = 0;;) {
         _res_metric += _table.at(i, j);
         counter++;
+        _map_func.emplace_back(_table.at(i, j));
         _mapping.emplace_back(i, j);
         if (i + 1 < _table.nrows() && j + 1 < _table.ncolumns()) {
             next_elems = {_table.at(i+1, j), _table.at(i+1, j+1), _table.at(i, j+1)};
@@ -59,6 +61,10 @@ Mapper::Mapper(const FloatingTable& table)
         }
     }
     _res_metric /= counter;
+}
+
+std::vector<double> Mapper::map_function() const {
+    return _map_func;
 }
 
 const mapping_t& Mapper::mapping() const {
