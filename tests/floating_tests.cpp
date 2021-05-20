@@ -47,11 +47,6 @@ inline void PlotMapping(
     std::vector<Point> s2_points,
     const mapping_t& mapping
 ) {
-    // auto comp = [](const Point& lhs, const Point& rhs) { return lhs.y < rhs.y; };
-    // auto [min_pos_s1, max_pos_s1] = std::minmax_element(s1_points.begin(), s1_points.end(), comp);
-    // auto [min_pos_s2, max_pos_s2] = std::minmax_element(s2_points.begin(), s2_points.end(), comp);
-    //  (min_pos_s1->y - max_pos_s2->y) / 2;
-    // diff *= 2;
     sequence_t diff = 5;
 
     std::ofstream seq1("seq1.txt");
@@ -74,7 +69,8 @@ inline void PlotMapping(
 void doTest(
     const std::string& first_filename,
     const std::string& second_filename,
-    double metric_upper_boudary = 0.,
+    double metric_lower_bound = 0.,
+    double metric_upper_bound = 0.,
     const mapping_t& assert_mapping = {},
     bool do_plot = false
 ) {
@@ -104,25 +100,61 @@ void doTest(
 
         PlotMapping(s1_points, s2_points, mapping);
     }
-    if (metric_upper_boudary > 0)
-        ASSERT(mp.res_metric() < metric_upper_boudary);
+    if (metric_upper_bound > 0) {
+        ASSERT(metric_lower_bound < mp.res_metric());
+        ASSERT(mp.res_metric() < metric_upper_bound);
+    }
     if (!assert_mapping.empty())
-        ASSERT(assert_mapping == mapping);
+        ASSERT_EQUAL(assert_mapping, mapping);
 }
 
 void testTextFiles() {
-    doTest("tests/simple/seq1.txt",
-           "tests/simple/seq2.txt",
-           0.02,
-           {{0, 0}, {1, 0}, {2, 1}, {2, 2}, {2, 3}, {3, 4}, {4, 4}},
-           false);
-    doTest("tests/unequal/seq1.txt",
-           "tests/unequal/seq2.txt",
-           10,
-           {},
-           false);
-    // doTest("tests/funcs/seq1.txt", "tests/funcs/seq2.txt",
-    //         0., {}, true);
+#if 1
+    doTest(
+        "tests/00.one_to_one/seq1.txt",
+        "tests/00.one_to_one/seq2.txt",
+        0.9, 1.1,
+        {{0, 0}});
+    doTest(
+        "tests/01.all_to_one/seq1.txt",
+        "tests/01.all_to_one/seq2.txt",
+        9.9, 10.1,
+        {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0},
+         {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}});
+    doTest(
+        "tests/02.one_to_all/seq1.txt",
+        "tests/02.one_to_all/seq2.txt",
+        9.9, 10.1,
+        {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5},
+         {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}});
+    for (const std::string& test_name : {
+            "03.constants", "05.increasing", "06.decreasing"
+            }) {
+        doTest(
+            "tests/" + test_name + "/seq1.txt",
+            "tests/" + test_name + "/seq2.txt",
+            -0.1, 0.1,
+            {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}});
+    }
+    doTest(
+        "tests/04.diff_constants/seq1.txt",
+        "tests/04.diff_constants/seq2.txt",
+        0.9, 1.1,
+        {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}});
+    doTest(
+        "tests/07.simple/seq1.txt",
+        "tests/07.simple/seq2.txt",
+        0., 0.2,
+        {{0, 0}, {1, 0}, {2, 1}, {2, 2}, {2, 3}, {3, 4}, {4, 4}});
+    doTest(
+        "tests/08.unequal/seq1.txt",
+        "tests/08.unequal/seq2.txt",
+        0, 10,
+        {{0, 0}, {1, 0}, {2, 1}, {3, 2}, {4, 2}});
+#elif 0
+    doTest("tests/funcs/seq1.txt", "tests/funcs/seq2.txt",
+            0., 0., {}, true);
+#endif
 }
 
 }  // namespace

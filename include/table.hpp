@@ -24,7 +24,10 @@ class BaseTable {
     BaseTable(size_t nrows, size_t ncolumns)
         : _rows(nrows)
         , _columns(ncolumns)
-        , _table(std::make_unique<node_t[]>(_rows * _columns)) {}
+        , _table(std::make_unique<node_t[]>(_rows * _columns)) {
+            if (nrows == 0 || ncolumns == 0)
+                throw std::runtime_error("Invalid table size");
+        }
 
     virtual ~BaseTable() = default;
 

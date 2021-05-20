@@ -56,7 +56,7 @@ std::ostream& operator << (std::ostream& os, const std::map<K, V>& m) {
 
 template <class T, class U>
 std::ostream& operator << (std::ostream& os, const std::pair<T, U>& p) {
-    return os << '<' << p.first << ", " << p.second << '>';
+    return os << '{' << p.first << ", " << p.second << '}';
 }
 
 template<class T, class U>

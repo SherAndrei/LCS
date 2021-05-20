@@ -28,9 +28,9 @@ using mapping_t = Mapper::mapping_t;
 Mapper::Mapper(const FloatingTable& table)
     : _table(table) {
     size_t counter = 0;
-    _mapping.reserve(std::min(_table.nrows(), _table.ncolumns()));
-    _map_func.reserve(std::min(_table.nrows(), _table.ncolumns()));
-    // (i + 1, j) (i + 1, j + 1), (i, j + 1)
+    _mapping.reserve(_table.nrows() + _table.ncolumns());
+    _map_func.reserve(_table.nrows() + _table.ncolumns());
+    // (i + 1, j + 1), (i + 1, j), , (i, j + 1)
     std::array<double, 3> next_elems;
 
     // auto [row_begin, row_end] = std::make_pair(_table.begin(), _table.begin() + _table.ncolumns());
@@ -42,15 +42,15 @@ Mapper::Mapper(const FloatingTable& table)
         _map_func.emplace_back(_table.at(i, j));
         _mapping.emplace_back(i, j);
         if (i + 1 < _table.nrows() && j + 1 < _table.ncolumns()) {
-            next_elems = {_table.at(i+1, j), _table.at(i+1, j+1), _table.at(i, j+1)};
+            next_elems = { _table.at(i+1, j+1), _table.at(i+1, j), _table.at(i, j+1)};
             auto pos = std::min_element(next_elems.begin(), next_elems.end());
 
             if (pos == next_elems.begin()) {
-                i++;
+                i++, j++;
             } else if (pos == next_elems.begin() + 2) {
                 j++;
             } else {
-                i++, j++;
+                i++;
             }
         } else if (i + 1 == _table.nrows() && j + 1 < _table.ncolumns()) {
             j++;
