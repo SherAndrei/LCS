@@ -100,13 +100,15 @@ class FloatingTable final : public BaseTable<double, double> {
     using BaseTable::node_t;
 
  public:
-    FloatingTable(const Sequence& S1,
-                  const Sequence& S2)
-        : BaseTable(S1.size(), S2.size()) {
+    FloatingTable(const Sequence& BiggerSequence,
+                  const Sequence& SmallerSequence)
+        : BaseTable(SmallerSequence.size(), BiggerSequence.size()) {
+        if (BiggerSequence.size() < SmallerSequence.size())
+            throw std::runtime_error("S1 size must be greater");
         size_t i, j;
         for (i = 0u; i < _rows; ++i) {
             for (j = 0u; j < _columns; ++j) {
-                at(i, j) = metric(S1[i], S2[j]);
+                at(i, j) = metric(SmallerSequence[i], BiggerSequence[j]);
             }
         }
     }

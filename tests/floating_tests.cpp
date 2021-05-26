@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 #include "table.hpp"
 #include "LCS.hpp"
@@ -42,27 +43,52 @@ inline Sequence getSequence(const std::vector<Point>& points) {
     return s;
 }
 
-inline void PlotMapping(
+inline void Plot(
     std::vector<Point> s1_points,
-    std::vector<Point> s2_points,
-    const mapping_t& mapping
+    const std::vector<Point>& s2_points,
+    const lcs::FloatingTable& table,
+    const lcs::Mapper& mapper
 ) {
-    sequence_t diff = 5;
+    const std::filesystem::path to_plot = "./to_plot";
+    std::filesystem::create_directory(to_plot);
 
-    std::ofstream seq1("seq1.txt");
-    for (auto&& p : s1_points) {
-        p.y += diff;
-        seq1 << p << '\n';
+    {
+        std::ofstream tfile(to_plot/"table.txt");
+        tfile << table << '\n';
     }
-
-    std::ofstream seq2("seq2.txt");
-    for (auto&& p : s2_points) {
-        seq2 << p << '\n';
+    {
+        sequence_t diff = 2;
+        std::ofstream o_seq1(to_plot/"seq1.txt");
+        std::ofstream s_seq1(to_plot/"shifted_seq1.txt");
+        for (auto&& p : s1_points) {
+            o_seq1 << p << '\n';
+            p.y += diff;
+            s_seq1 << p << '\n';
+        }
     }
-
-    std::ofstream map("mapping.txt");
-    for (auto&& [idx_s1, idx_s2] : mapping) {
-        map << s1_points[idx_s1] << '\n' << s2_points[idx_s2] << "\n\n";
+    {
+        std::ofstream o_seq2(to_plot/"seq2.txt");
+        for (auto&& p : s2_points) {
+            o_seq2 << p << '\n';
+        }
+    }
+    {
+        std::ofstream mpf(to_plot/"map_function.txt");
+        auto values = mapper.map_function();
+        for (auto&& val : values)
+            mpf << val << '\n';
+    }
+    auto mapping = mapper.mapping();
+    {
+        std::ofstream metric(to_plot/"metric.txt");
+        metric << mapper.res_metric() << '\n'
+               << mapping << '\n';
+    }
+    {
+        std::ofstream map(to_plot/"mapping.txt");
+        for (auto&& [idx_s1, idx_s2] : mapping) {
+            map << s2_points[idx_s1] << '\n' << s1_points[idx_s2] << "\n\n";
+        }
     }
 }
 
@@ -86,20 +112,7 @@ void doTest(
     auto mapping = mp.mapping();
 
     if (do_plot) {
-        {
-            std::ofstream mpf("map_function.txt");
-            auto values = mp.map_function();
-            for (auto&& val : values)
-                mpf << val << '\n';
-        }
-        {
-            std::ofstream map("map.txt");
-            map << mp.res_metric() << '\n';
-            map << table << '\n';
-            map << mapping << '\n';
-        }
-
-        PlotMapping(s1_points, s2_points, mapping);
+        Plot(s1_points, s2_points, table, mp);
     }
     if (metric_upper_bound > 0) {
         ASSERT(metric_lower_bound < mp.res_metric());
@@ -113,26 +126,26 @@ void testSmall() {
     doTest(
         "tests/00.one_to_one/seq1.txt",
         "tests/00.one_to_one/seq2.txt",
-        0.9, 1.1,
-        {{0, 0}});
+        0.9, 1.1, {{0, 0}});
     doTest(
         "tests/01.all_to_one/seq1.txt",
         "tests/01.all_to_one/seq2.txt",
-        9.9, 10.1,
-        {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0},
-         {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}});
-    doTest(
-        "tests/02.one_to_all/seq1.txt",
-        "tests/02.one_to_all/seq2.txt",
-        9.9, 10.1,
-        {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5},
-         {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}});
+        -0.1, 0.1, {{0, 5}});
+    try {
+        doTest(
+            "tests/02.one_to_all/seq2.txt",
+            "tests/02.one_to_all/seq1.txt",
+            0, 0, {});
+        ASSERT(false);
+    } catch (const std::exception&) {
+        ASSERT(true);
+    }
 }
 
 void testConstants() {
     for (const std::string& test_name : {
-            "03.constants", "05.increasing", "06.decreasing"
-            }) {
+            "02.constants", "04.increasing", "05.decreasing"
+    }) {
         doTest(
             "tests/" + test_name + "/seq1.txt",
             "tests/" + test_name + "/seq2.txt",
@@ -140,30 +153,39 @@ void testConstants() {
             {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}});
     }
     doTest(
-        "tests/04.diff_constants/seq1.txt",
-        "tests/04.diff_constants/seq2.txt",
+        "tests/03.diff_constants/seq1.txt",
+        "tests/03.diff_constants/seq2.txt",
         0.9, 1.1,
         {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}});
 }
 
 void testVarious() {
     doTest(
-        "tests/07.simple/seq1.txt",
-        "tests/07.simple/seq2.txt",
-        0., 0.2,
-        {{0, 0}, {1, 0}, {2, 1}, {2, 2}, {2, 3}, {3, 4}, {4, 4}});
+        "tests/06.simple/seq1.txt",
+        "tests/06.simple/seq2.txt",
+        0.008, 0.009,
+        {{0, 0}, {0, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 3}});
     doTest(
-        "tests/08.unequal/seq1.txt",
-        "tests/08.unequal/seq2.txt",
-        0, 10,
-        {{0, 0}, {1, 0}, {2, 1}, {3, 2}, {4, 2}});
+        "tests/07.unequal/seq1.txt",
+        "tests/07.unequal/seq2.txt",
+        0.19, 0.2,
+        {{0, 1}, {1, 2}, {2, 3}}, true);
+}
+
+void testMisc() {
+    doTest("tests/08.misc/seq1.txt", "tests/08.misc/seq2.txt",
+            -0.001, 0.001, {{0, 1}, {1, 2}});
+    doTest("tests/08.misc/seq1.txt", "tests/08.misc/seq3.txt",
+            -0.001, 0.001, {{0, 1}, {0, 2}, {1, 3}});
+    doTest("tests/08.misc/seq1.txt", "tests/08.misc/seq4.txt",
+            -0.001, 0.001, {{0, 0}, {1, 1}});
 }
 
 void testFuncs() {
     doTest("tests/funcs/sin/seq1.txt", "tests/funcs/sin/seq2.txt",
-            0., 4e-5, {});
+            0., 3e-05, {});
     doTest("tests/funcs/cont/seq1.txt", "tests/funcs/cont/seq2.txt",
-            0., 0, {}, true);
+            0., 0.2, {});
 }
 
 }  // namespace
@@ -173,5 +195,6 @@ int main() {
     RUN_TEST(tr, testSmall);
     RUN_TEST(tr, testConstants);
     RUN_TEST(tr, testVarious);
+    RUN_TEST(tr, testMisc);
     RUN_TEST(tr, testFuncs);
 }

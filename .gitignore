@@ -323,3 +323,6 @@ TSWLatexianTemp*
 *.exe
 *.out
 *.app
+
+# Text files
+*.txt

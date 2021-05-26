@@ -4,9 +4,13 @@
 
 double func(double x) {
 #ifdef FIRST
-    return std::exp(-x/2)*( std::sin(10 * x * std::cos(x)) );
+    if (x < -3)
+        return -x;
+    if (x > 3)
+        return x;
+    return 3;
 #elif SECOND
-    return 1.2 * std::exp(-(x + 1)/2)*( std::sin(10 * (x+1) * std::cos(x+1)) );
+    return 3.1;
 #endif
 }
 
