@@ -11,7 +11,7 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
-CTestTestfile.cmake
+*.cmake
 _deps
 
 ## Core latex/pdflatex auxiliary files:
@@ -326,3 +326,7 @@ TSWLatexianTemp*
 
 # Text files
 *.txt
+!CMakeLists.txt
+
+# GTest
+*.pc
