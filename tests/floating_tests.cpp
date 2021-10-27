@@ -20,8 +20,6 @@ struct Point {
     }
 };
 
-namespace {
-
 inline std::vector<Point> readFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file)
@@ -186,15 +184,4 @@ void testFuncs() {
             0., 3e-05, {});
     doTest("tests/funcs/cont/seq1.txt", "tests/funcs/cont/seq2.txt",
             0., 0.2, {});
-}
-
-}  // namespace
-
-int main() {
-    TestRunner tr;
-    RUN_TEST(tr, testSmall);
-    RUN_TEST(tr, testConstants);
-    RUN_TEST(tr, testVarious);
-    RUN_TEST(tr, testMisc);
-    RUN_TEST(tr, testFuncs);
 }

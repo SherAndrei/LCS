@@ -11,7 +11,7 @@ namespace lcs {
 using IntegralSequence = IntegralTable::Sequence;
 
 IntegralSequence
-find(const IntegralSequence& S1, const IntegralSequence& S2);
+Find(const IntegralSequence& S1, const IntegralSequence& S2);
 
 using FloatingSequence = FloatingTable::Sequence;
 

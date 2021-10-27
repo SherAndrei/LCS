@@ -3,7 +3,7 @@
 namespace lcs {
 
 IntegralSequence
-find(const IntegralSequence& S1, const IntegralSequence& S2) {
+Find(const IntegralSequence& S1, const IntegralSequence& S2) {
     const IntegralTable table(S1, S2);
     size_t index = table.at(S1.size(), S2.size());
     IntegralSequence lcs(index);

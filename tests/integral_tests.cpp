@@ -7,7 +7,7 @@ struct IntegralSequenceTest : ::testing::Test
 {
     void TearDown() override
     {
-        const auto result = lcs::find(lhs, rhs);
+        const auto result = lcs::Find(lhs, rhs);
         ASSERT_THAT(result, ::testing::SizeIs(expected.size()));
         EXPECT_EQ(result, expected);
     }
